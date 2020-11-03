@@ -1,0 +1,90 @@
+---
+title: "Task 3: Exploring Urchin Data"
+author: "Thomas Wheeler"
+date: "11/2/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE, message=FALSE, warning=FALSE, error=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(here)
+library(kableExtra)
+library(lubridate)
+
+```
+
+Read in data
+```{r}
+urchin_data <- read_csv(here("data", "urchins.csv"))
+
+```
+
+Red vs. Purple Urchin: Exploratory histograms comparing size distribution by common name
+```{r}
+urchin_data %>% ggplot(aes(x = SIZE)) +
+    geom_histogram(binwidth = .25) +
+    facet_wrap(~COMMON_NAME)
+```
+
+Red vs. Purple Urchin: Exploratory boxplots comparing size distribution by common name
+```{r}
+urchin_data %>% ggplot(aes(x = COMMON_NAME, y = SIZE)) +
+    geom_boxplot()
+```
+
+Create summary statistics table for purple and red urchins
+```{r}
+#Assign summary stats to a variable, summary stats are grouped by urchin common name
+urchin_stats <- urchin_data %>% 
+  group_by(COMMON_NAME) %>% 
+  summarize(mean_size = mean(SIZE), 
+            median_size = median(SIZE), 
+            sd_size = sd(SIZE), 
+            n_size = n())
+
+#Create table using kableExtra to improve the presentation of the data
+kbl(urchin_stats, caption = "Urchin Stats") %>%
+  kable_styling(bootstrap_options = "striped",
+                full_width = F)
+```
+
+Description of overall difference between 2 urchin populations:
+
+There are a few notable differences between the purple and red urchin samples. First, the red urchin's mean size (diameter) is 2.3 cm larger than that of the red urchin. The red urchin is 51% larger than the purple urchin. The range and spread of red urchin data is also larger than the purple urchin. The red urchin's n size is smaller than the red urchin.
+
+## Section 2
+
+Stored subset of urchin data
+```{r}
+purple_urchins <- urchin_data %>% 
+  filter(COMMON_NAME == 'Purple Urchin') %>% 
+  mutate(DATE = mdy(DATE)) %>% 
+  mutate(YEAR = year(DATE)) %>% 
+  mutate(site_full = case_when(
+    SITE == 'NAPL' ~ "Naples Reef",
+    SITE == 'AQUE' ~ "Arroyo Quemado Reef",
+    SITE == 'CARP' ~ "Carpinteria Reef",
+    SITE == 'MOHK' ~ "Mohawk Reef",
+    SITE == 'IVEE' ~ "Isla Vista Reef",
+  ))
+
+#Assign summary stats to a variable, summary stats are grouped by urchin common name
+purple_urchin_stats <- purple_urchins %>% 
+  group_by(site_full, YEAR) %>% 
+  count()
+
+#Create table using kableExtra to improve the presentation of the data
+kbl(purple_urchin_stats, caption = "Purple Urchin Stats") %>%
+  kable_styling(bootstrap_options = "striped",
+                full_width = F)
+
+ggplot(data = purple_urchin_stats, aes(x=YEAR, y=n)) +
+  geom_line(aes(color = site_full)) + 
+  labs(
+  title = "Counts of purple urchins recorded at each site over time (2008-2020)",
+  x = "Counts of purple urchins",
+  y = "Year") 
+```
+
