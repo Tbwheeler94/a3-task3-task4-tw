@@ -81,7 +81,8 @@ kbl(purple_urchin_stats, caption = "Purple Urchin Stats") %>%
                 full_width = F)
 
 ggplot(data = purple_urchin_stats, aes(x=YEAR, y=n)) +
-  geom_line(aes(color = site_full)) + 
+  geom_bar(stat="identity") + 
+  facet_wrap(~site_full) +
   labs(
   title = "Counts of purple urchins recorded at each site over time (2008-2020)",
   x = "Counts of purple urchins",

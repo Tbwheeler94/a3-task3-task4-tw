@@ -1,0 +1,84 @@
+---
+title: 'Task 4: Naples Reef Purple Urchins'
+author: "Tom Wheeler"
+date: "11/2/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(here)
+library(kableExtra)
+library(lubridate)
+
+```
+
+Read in data, pull sample vectors for Red and Purple Urchin Data
+```{r}
+urchin_data <- read_csv(here("data", "urchins.csv"))
+
+#Create dataframe for all purple urchin data only collected in January 2010
+purple_urchins_jan2010 <- urchin_data %>% 
+  mutate(DATE = mdy(DATE)) %>% 
+  mutate(MONTH = month(DATE)) %>% 
+  mutate(YEAR = year(DATE)) %>% 
+  filter(MONTH == 1, YEAR == 2010, COMMON_NAME == "Purple Urchin")
+
+#Create dataframe for purple urchin data only collected in January 2010 and only in the control group
+#Pull just the size values out of the dataframe as a vector to make it readable for the t.test function
+purple_urchins_control <- urchin_data %>% 
+  mutate(DATE = mdy(DATE)) %>% 
+  mutate(MONTH = month(DATE)) %>% 
+  mutate(YEAR = year(DATE)) %>% 
+  filter(MONTH == 1, YEAR == 2010, COMMON_NAME == "Purple Urchin", TREATMENT == "CONTROL") %>% 
+  pull(SIZE)
+
+#Create dataframe for purple urchin data only collected in January 2010 and only in the annual group
+#Pull just the size values out of the dataframe as a vector to make it readable for the t.test function
+purple_urchins_annual <- urchin_data %>% 
+  mutate(DATES = mdy(DATE)) %>% 
+  mutate(MONTH = month(DATES)) %>% 
+  mutate(YEAR = year(DATES)) %>% 
+  filter(MONTH == 1, YEAR == 2010, COMMON_NAME == "Purple Urchin", TREATMENT == "ANNUAL") %>% 
+  pull(SIZE)
+
+```
+
+Histogram plot to assess distribution normality
+```{r}
+ggplot(data = purple_urchins_jan2010, aes(x = SIZE)) +
+  geom_histogram(bins = 10) +
+  facet_wrap(~TREATMENT)
+```
+Main takeaways: For the most part, these two histograms appear to be normally distributed, with a possibility for negative skew based on a larger proportion of values being to the left of the most common value. This assessment is based on a bin number set to 10, looking at different bin number can change the way the distribution looks so it's important to experiment with different distributions.
+
+QQ-Plot to assess distribution normality
+```{r}
+ggplot(data = purple_urchins_jan2010, aes(sample = SIZE)) +
+  geom_qq() +
+  facet_wrap(~TREATMENT)
+```
+Main takeaways: For the most part, both plots appear to be linear. The control group may have a slight negative skew as echoed in the histogram.    
+
+
+```{r}
+#Assign summary stats to a variable, summary stats are grouped by urchin common name
+purple_urchin_stats <- purple_urchins_jan2010 %>% 
+  group_by(TREATMENT) %>% 
+  summarize(mean_size = mean(SIZE), 
+            median_size = median(SIZE), 
+            sd_size = sd(SIZE), 
+            n_size = n())
+
+#Create table using kableExtra to improve the presentation of the data
+kbl(purple_urchin_stats, caption = "Urchin Size Comparisons for Annual and Control Treatment Groups. Data includes only values from January 2010") %>%
+  kable_styling(bootstrap_options = "striped",
+                full_width = F)
+```
+
+```{r}
+t.test(x = purple_urchins_control, purple_urchins_annual)
+```
+Analysis of results: To start, despite these data being a small subset of an extremely large dataset, we have reasonably large sample sizes of 115 for the annual group and 92 for the control group. That said, these two means are extremely close. The annual group's mean was only .22 cm larger than the control's mean and their median sizes were the same. The standard deviations were very similar as well, only .03 cm different, suggesting they had a relatively similar data spread. The p-value in this result means there is a 14.4% probability of getting two sample means that are at least this different, assuming they were drawn from populations with the same mean.
