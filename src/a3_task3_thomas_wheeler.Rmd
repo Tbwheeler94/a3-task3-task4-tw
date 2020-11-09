@@ -24,14 +24,20 @@ urchin_data <- read_csv(here("data", "urchins.csv"))
 Red vs. Purple Urchin: Exploratory histograms comparing size distribution by common name
 ```{r}
 urchin_data %>% ggplot(aes(x = SIZE)) +
-    geom_histogram(binwidth = .25) +
-    facet_wrap(~COMMON_NAME)
+    geom_histogram() +
+    facet_wrap(~COMMON_NAME) +
+    labs(x = "Urchin Diameter (cm)",
+         y = "Number of Observations",
+         title = "Comparison of Diameters between Purple and Red Urchins")
 ```
 
 Red vs. Purple Urchin: Exploratory boxplots comparing size distribution by common name
 ```{r}
 urchin_data %>% ggplot(aes(x = COMMON_NAME, y = SIZE)) +
-    geom_boxplot()
+    geom_boxplot() +
+    labs(x = "Urchin Type",
+         y = "Urchin Diameter (cm)",
+         title = "Comparison of Diameters between Purple and Red Urchins")
 ```
 
 Create summary statistics table for purple and red urchins
@@ -79,13 +85,17 @@ purple_urchin_stats <- purple_urchins %>%
 kbl(purple_urchin_stats, caption = "Purple Urchin Stats") %>%
   kable_styling(bootstrap_options = "striped",
                 full_width = F)
+```
 
+
+```{r}
+#Create histograms of purple urchins recorded at each site over time (2008-2020)
 ggplot(data = purple_urchin_stats, aes(x=YEAR, y=n)) +
   geom_bar(stat="identity") + 
   facet_wrap(~site_full) +
   labs(
   title = "Counts of purple urchins recorded at each site over time (2008-2020)",
-  x = "Counts of purple urchins",
-  y = "Year") 
+  x = "Year",
+  y = "Counts of purple urchins") 
 ```
 
