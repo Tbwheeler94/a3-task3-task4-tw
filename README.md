@@ -1,1 +1,3 @@
-# a3-task3-task4-tw
+# Urchin data exploration
+
+## This assignment generates histograms and boxplots of red vs. purple sea urchin data to explores differences in diameter.
